@@ -20,6 +20,8 @@ public class EduApp {
         case "add": classroomController.doAdd(); break; //이제 클래스 대신 인스턴스 주소를 주는 것
         case "list": classroomController.doList(); break;
         case "view": classroomController.doView(); break;
+        case "delete": classroomController.doDelete(); break;
+        case "updata": classroomController.doUpdata(); break;
         case "quit":
           System.out.println("Good bye!");
           break loop;
