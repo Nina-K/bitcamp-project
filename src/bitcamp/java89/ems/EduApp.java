@@ -17,11 +17,8 @@ public class EduApp {
       String command = keyScan.nextLine().toLowerCase();
 
       switch (command) {
-        case "add": classroomController.doAdd(); break; //이제 클래스 대신 인스턴스 주소를 주는 것
-        case "list": classroomController.doList(); break;
-        case "view": classroomController.doView(); break;
-        case "delete": classroomController.doDelete(); break;
-        case "updata": classroomController.doUpdata(); break;
+        case "menu": doMenu(); break;
+        case "go 3": classroomController.service(); break;
         case "quit":
           System.out.println("Good bye!");
           break loop;
@@ -29,5 +26,11 @@ public class EduApp {
           System.out.println("지원하지 않는 명령어입니다.");
       }
     }
+  }
+
+  static void doMenu() {
+    System.out.println("[메뉴]");
+    System.out.println("1. 강의실관리");
+    System.out.println("메뉴 이동은 'go 메뉴번호'를 입력하세요.");
   }
 }
