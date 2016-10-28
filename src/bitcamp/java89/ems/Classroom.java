@@ -1,7 +1,6 @@
 package bitcamp.java89.ems;
 
 public class Classroom  {
-  // 인스턴스 변수
   String name;
   int floors;
   int maximumSeating;
@@ -24,5 +23,6 @@ public class Classroom  {
     this.projector = projector;
     this.locker = locker;
     this.conditioner = conditioner;
+
   }
 }
