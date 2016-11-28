@@ -1,0 +1,127 @@
+//v01 : 스태틱 변수를 인스턴스 변수로 전환
+
+package bitcamp.java89.ems.server;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+
+import bitcamp.java89.ems.server.controller.ClassroomController2;
+import bitcamp.java89.ems.server.controller.ContactController;
+//import bitcamp.java89.ems.server.controller.StudentController;
+
+public class EduAppServer {
+  private Scanner in;
+  private PrintStream out;
+  
+  private ClassroomController2 classroomController2;
+  private ContactController contactController;
+  //static StudentController studentController;
+
+  public static void main(String[] args) throws Exception {
+    EduAppServer eduServer = new EduAppServer();
+    eduServer.service(); //실전에서도 스태틱보다는 인스턴스변수로 한다.
+  }
+  
+  private void service() throws Exception {
+    ServerSocket ss = new ServerSocket(8888);
+    System.out.println("..서버 실행 중..");
+    
+    while (true) {
+      processRequest(ss.accept());
+    } 
+  }
+
+  private void processRequest(Socket socket) {
+    try { //in, out을 다른 곳에서도 공유하므로 외부변수를 끌어쓰는 것이다. 따라서 자동관리가 불가능해서 {} 일반형식을 쓴다.
+       //대기열 클라이언트 한 명에 대해서 승인
+      in = new Scanner(new BufferedInputStream(socket.getInputStream()));
+      out = new PrintStream(new BufferedOutputStream(socket.getOutputStream()), true);
+      //println, 맨끝에 엔터를 넣으면 자동으로 서버에 플러쉬(flush())한다. => true
+      /*BufferedOutputStream로 버퍼를 보낼 때 서버가 멈춰서 데이터를 더 이상 보지 못할 때가 생긴다.
+       *이럴 때 보낼 수 있는 잔여라도 보내게 해야하는데, 대개 이때 close()를 쓰면 close()가
+       *잔여를 보내주는 기능을 하지만, 기능을 사용하는 도중에는 쓸 수 없기 때문에
+       *대신 flush()를 사용하는 것. 이건 BufferedOutputStream에 포함되어있으므로
+       *항상 flush를 할거라면 true를 해주면 된다.*/
+      
+      classroomController2 = new ClassroomController2(in, out); //주는 inputStream으로 읽어서, outputStream으로 출력하라
+      contactController = new ContactController(in, out);
+      //studentController = new StudentController(keyScan);
+   
+      out.println("비트캠프 관리시스템에 오신걸 환영합니다.");
+      //서버 모니터를 출력할 일이 없으므로 System 없앤다.
+      
+      loop:
+      while (true) {
+        //클라이언트에게 데이터를 전송한다.
+        out.println("명령>");
+        out.println(); //빈 줄은 보내는 데이터의 끝을 의미한다.
+        
+        //클라이언트로부터 명령을 읽는다.
+        String command = in.nextLine().toLowerCase(); //클라이언트로부터 읽는다. (in)
+   
+        boolean running = true;
+        //서비스를 계속 실행할것이냐 말것이냐
+        switch (command) {
+          case "menu": doMenu(); break; //러닝값을 리턴하지 않아도 트루가 되어 doMenu()도 제대로 실행될 수 있게된다.
+          case "go 1": running = classroomController2.service(); break;
+          case "go 5": running = contactController.service(); break;
+          case "save": doSave(); break;
+          case "quit":
+            if (doQuit())
+              break loop;
+            break;
+          default:
+            out.println("지원하지 않는 명령어입니다.");
+        }
+        
+        if (!running) {
+          doQuit();
+          //스위치문 밖이므로 loop를 끝내줄 이유가 없다.
+          break;
+        }
+      }
+    } catch (Exception e) {
+      //클라이언트 요청처리 중 예외 발생!
+    } finally {
+      try {in.close();} catch (Exception e) {}
+      try {out.close();} catch (Exception e) {}
+      try {socket.close();} catch (Exception e) {}
+    }
+  }
+
+  private void doMenu() {
+    out.println("[메뉴]");
+    out.println("1. 강의실관리");
+    out.println("5. 연락처관리");
+    out.println("메뉴 이동은 'go 메뉴번호'를 입력하세요.");
+    out.println("[명령]");
+    out.println("save   데이터 저장");
+    out.println("quit   프로그램 종료");
+  }
+
+  private boolean doQuit() {
+    boolean changed = classroomController2.isChanged();
+    if (changed) {
+      doSave();//바로 자동저장
+    }
+    System.out.println("클라이언트 연결 종료!");
+    return true;
+  }
+
+  private void doSave() {
+    try {
+      classroomController2.save();
+    } catch (Exception e) {
+      System.out.println("강의실 정보 저장 중에 오류가 발생했습니다.");
+    }
+    try {
+      contactController.save();
+    } catch (Exception e) {
+      System.out.println("연락처 정보 저장 중에 오류가 발생했습니다.");
+    }
+  }
+}

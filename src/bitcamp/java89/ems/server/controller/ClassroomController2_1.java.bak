@@ -1,0 +1,235 @@
+/* 모든 예외 처리를 service()에서 수행한다.
+   => 이점 : doXxx() 메서드에서 예외처리 코드를 작성할 필요가 없다.
+   => 단점 : 각각의 명령어 마다 섬세하게 예외를 다룰 수 없다.
+   따라서 예외를 중앙에서 처리할 지 개별적으로 처리할 지, 아니면 섞을지
+   개발자가 선택하면 된다.
+*/
+
+package bitcamp.java89.ems;
+
+import java.io.File;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+
+public class ClassroomController2 {
+  static ArrayList<Classroom> list;
+  private Scanner keyScan;
+  static boolean isChanged;
+
+  public ClassroomController2(Scanner keyScan) throws Exception {
+    list = new ArrayList<Classroom>();
+    this.keyScan = keyScan;
+    load();
+  }
+
+  public void load() throws Exception {
+    //파일에서 읽어옴
+    File file = new File("Classroom.data");
+    if(!file.exists()) {
+      return;
+    }
+
+    FileInputStream in = new FileInputStream(file);
+    DataInputStream in2 = new DataInputStream(in);
+
+    String line;
+    boolean bool;
+
+    int listSize = in2.readInt();
+    for(int i = 0; i < listSize; i++) {
+      Classroom room = new Classroom();
+
+      room.name = in2.readUTF();
+      room.floors = in2.readInt();
+      room.maximumSeating = in2.readInt();
+      room.maximumPeriod = in2.readUTF();
+      room.time = in2.readUTF();
+      room.password = in2.readUTF();
+      room.projector = in2.readBoolean();
+      room.locker = in2.readBoolean();
+      room.conditioner = in2.readBoolean();
+      list.add(room);
+    }
+}
+
+  public boolean isChanged() {
+    return isChanged;
+  }
+
+  public void service() {
+    loop:
+    while (true) {
+      System.out.print("강의실관리> ");
+      String command = keyScan.nextLine().toLowerCase();
+
+      try {
+        switch (command) {
+          case "add": this.doAdd(); break;
+          case "list": this.doList(); break;
+          case "view": this.doView(); break;
+          case "delete": this.doDelete(); break;
+          case "update": this.doUpdate(); break;
+          case "main":
+            break loop;
+          default:
+            System.out.println("지원하지 않는 명령어입니다.");
+        }
+      } catch (IndexOutOfBoundsException e) {
+        System.out.println("인덱스가 유효하지 않습니다.");
+      } catch (Exception e) {
+        System.out.println("실행 중 오류가 발생했습니다.");
+      } // try
+    } // while
+  }
+
+  private void doList() {
+    for (Classroom classroom : list) {
+      System.out.printf("%s, %d, %d, %s, %s, %s, %s, %s, %s\n",
+        classroom.name,
+        classroom.floors,
+        classroom.maximumSeating,
+        classroom.maximumPeriod,
+        classroom.time,
+        classroom.password,
+        ((classroom.projector)?"yes":"no"),
+        ((classroom.locker)?"yes":"no"),
+        ((classroom.conditioner)?"yes":"no"));
+    }
+  }
+
+  private void doAdd() {
+    while(true) {
+      Classroom classroom = new Classroom();
+
+      System.out.print("강의실이름(예:강의실301호)? ");
+      classroom.name = this.keyScan.nextLine();
+
+      System.out.print("층수(예:3)? ");
+      classroom.floors = Integer.parseInt(this.keyScan.nextLine());
+
+      while (true) {
+        try {
+          System.out.print("최대수용인원(예:30)? ");
+          classroom.maximumSeating = Integer.parseInt(this.keyScan.nextLine());
+          break;
+        } catch (Exception e) {
+          System.out.println("정수 값을 입력하세요.");
+        }
+      }
+
+      System.out.print("최대이용기간(예:6개월)? ");
+      classroom.maximumPeriod = this.keyScan.nextLine();
+
+      System.out.print("이용시간(예:08:00~22:00)? ");
+      classroom.time = this.keyScan.nextLine();
+
+      System.out.print("암호(예:0000)? ");
+      classroom.password = this.keyScan.nextLine();
+
+      System.out.print("프로젝터 여부(y/n)? ");
+      classroom.projector = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+      System.out.print("사물함 여부(y/n)? ");
+      classroom.locker = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+      System.out.print("에어컨 여부(y/n)? ");
+      classroom.conditioner = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+      list.add(classroom);
+      isChanged = true;
+
+    System.out.print("계속 입력하시겠습니까(y/n)? ");
+    if (!this.keyScan.nextLine().equals("y"))
+        break;
+    } // while - 이렇게 붙임으로써 어느 블록인지를 표시해둔다.
+  }
+
+   private void doView() {
+     System.out.print("강의실의 인덱스? ");
+     int index = Integer.parseInt(this.keyScan.nextLine().toLowerCase());
+
+     Classroom classroom = list.get(index); //타입캐스팅해줘야한다. Object이므로.
+     //get에서 예외가 발생하더라도, doView가 던져서 service에서 받을 때 예외처리를 실행한다.
+     //스텔스 모드이기 때문에 가능하다.
+
+     System.out.printf("강의실 이름: %s\n", classroom.name);
+     System.out.printf("층수: %d\n", classroom.floors);
+     System.out.printf("최대수용인원: %d\n", classroom.maximumSeating);
+     System.out.printf("최대이용기간: %s\n", classroom.maximumPeriod);
+     System.out.printf("이용시간: %s\n", classroom.time);
+     System.out.printf("암호: (****)\n");
+     System.out.printf("프로젝터 여부: %b\n", (classroom.projector) ? "Yes" : "No");
+     System.out.printf("사물함 여부: %b\n", (classroom.locker) ? "Yes" : "No");
+     System.out.printf("에어컨 여부: %b\n", (classroom.conditioner) ? "Yes" : "No");
+    }
+
+    private void doDelete() {
+      System.out.print("삭제할 강의실의 인덱스? ");
+      int index = Integer.parseInt(keyScan.nextLine());
+      Classroom deletedClassroom = list.remove(index);
+      isChanged = true;
+      //리무브할 때 리턴값이 리무브 되기 전 값
+      //삭제될 값을 꼭 넘겨준다. 삭제될 거 필요하면 쓰라고.
+      System.out.printf("%s 강의실 정보를 삭제하였습니다.\n", deletedClassroom.name);
+
+    }
+
+    private void doUpdate() {
+
+      System.out.print("변경할 강의실 인덱스? ");
+      int index = Integer.parseInt(keyScan.nextLine());
+
+        Classroom oldClassroom = list.get(index);
+
+        Classroom classroom = new Classroom();
+        System.out.print("층수? ");
+        classroom.floors = Integer.parseInt(this.keyScan.nextLine());
+
+        while (true) {
+          try {
+            System.out.printf("최대수용인원(%d)? ", oldClassroom.maximumSeating);
+            classroom.maximumSeating = Integer.parseInt(this.keyScan.nextLine());
+            break;
+          } catch (Exception e) {
+            System.out.println("정수 값을 입력하세요.");
+          }
+        }
+
+        System.out.printf("최대이용기간(%s)? ", oldClassroom.maximumPeriod);
+        classroom.maximumPeriod = this.keyScan.nextLine();
+
+        System.out.printf("이용시간(%s)? ", oldClassroom.time);
+        classroom.time = this.keyScan.nextLine();
+
+        System.out.printf("암호(%s)? ", oldClassroom.password);
+        classroom.password = this.keyScan.nextLine();
+
+        System.out.print("프로젝터 여부(y/n)? ");
+        classroom.projector = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+        System.out.print("사물함 여부(y/n)? ");
+        classroom.locker = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+        System.out.print("에어컨 여부(y/n)? ");
+        classroom.conditioner = (this.keyScan.nextLine().equals("y")) ? true : false;
+
+        System.out.print("저장하시겠습니까? ");
+        if (keyScan.nextLine().toLowerCase().equals("y")) {
+          classroom.name = oldClassroom.name;
+          list.set(index, classroom);
+          isChanged = true;
+          System.out.println("저장하였습니다.");
+            } else {
+              System.out.println("변경을 취소하였습니다.");
+            }
+          /*예외 처리가 뭐하는 문법인지, 뭐가 좋은지?
+            => 예외 처리를 사용하면, 프로그램 실행 중 오류가 발생했을 때,
+               시스템을 멈추게 하지 않고 계속해서 할 수 있게 하기 위함이다.
+               적절한 조치를 취했기에 시스템은 계속 할 수 있다.
+
+               정상적인 코드와 예외처리 코드를 따로 둠으로써 소스코드의 가독성을 높인다. */
+        }
+    }

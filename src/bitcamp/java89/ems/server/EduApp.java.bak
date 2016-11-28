@@ -1,0 +1,71 @@
+package bitcamp.java89.ems;
+
+import java.io.File;
+import java.util.Scanner;
+import java.io.FileOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+public class EduApp {
+  static Scanner keyScan = new Scanner(System.in);
+  boolean isChanged;
+
+  public static void main(String[] args) throws Exception {
+
+    ClassroomController2 classroomController2 = new ClassroomController2(keyScan);
+
+    System.out.println("비트캠프 관리시스템에 오신걸 환영합니다.");
+
+    loop:
+    while (true) {
+      System.out.print("명령> ");
+      String command = keyScan.nextLine().toLowerCase();
+
+      switch (command) {
+        case "menu": doMenu(); break;
+        case "go 1": classroomController2.service(); break;
+        case "quit":
+          if (classroomController2.isChanged()) {
+            System.out.print("학생 정보가 변경되었습니다. 그래도 종료하시겠습니까?(y/n)");
+            if (!keyScan.nextLine().toLowerCase().equals("y")) {
+              break;
+            } else {
+              System.out.println("학생 정보가 변경된 것을 취소하고 종료합니다.");
+            }
+          }
+          System.out.println("Good bye!");
+          break loop;
+        case "save": doSave(); break;
+        default:
+          System.out.println("지원하지 않는 명령어입니다.");
+      }
+    }
+  }
+
+
+  static void doMenu() {
+    System.out.println("[메뉴]");
+    System.out.println("1. 강의실관리");
+    System.out.println("메뉴 이동은 'go 메뉴번호'를 입력하세요.");
+  }
+
+
+  static void doSave() throws Exception {
+    FileOutputStream out = new FileOutputStream("Classroom.data");
+    DataOutputStream out2 = new DataOutputStream(out);
+    out2.writeInt(ClassroomController2.list.size());
+    for (Classroom classroom : ClassroomController2.list) {
+        out2.writeUTF(classroom.name);
+        out2.writeInt(classroom.floors);
+        out2.writeInt(classroom.maximumSeating);
+        out2.writeUTF(classroom.maximumPeriod);
+        out2.writeUTF(classroom.time);
+        out2.writeUTF(classroom.password);
+        out2.writeBoolean(classroom.projector);
+        out2.writeBoolean(classroom.locker);
+        out2.writeBoolean(classroom.conditioner);
+    }
+    ClassroomController2.isChanged = false;
+    System.out.println("저장하였습니다.");
+  }
+}
