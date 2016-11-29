@@ -9,9 +9,16 @@ package bitcamp.java89.ems.server.dao;
 
 import java.util.ArrayList;
 
+import bitcamp.java89.ems.server.annotation.Component;
 import bitcamp.java89.ems.server.vo.Classroom;
 
+@Component // ApplicationContext가 객체를 관리하는 클래스임을 표시하기 위해 태그를 단다.
 public class ClassroomDao extends AbstractDao<Classroom> {
+  
+  public ClassroomDao() { //어차피 객체 생성하는 쪽에서 try~catch하니까 예외를 던짐
+    this.setFilename("classroom-v1.8.data");
+      try {this.load();} catch (Exception e) {} //기본 생성자가 생기면 파일 로드하고 처리하도록
+      } //classroom-v1.8.data 이게 없는 파일이라면, 로드도 잘 안 되는 예외가 생기니까 try~catch를 사용해서 생성할 수 있게 돌아가도록 한다.
  
   public ArrayList<Classroom> getList() {
     return this.list;

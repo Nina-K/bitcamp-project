@@ -6,12 +6,12 @@ import java.util.ArrayList;
 //import bitcamp.java89.ems.server.controller.StudentController;
 import java.util.HashMap;
 
-public class EduAppServer2 {
+public class EduAppServer2bak {
   //클라이언트 요청을 처리할 Command 구현체들을 보관한다(Command 구현체 보관소).
   //HashMap<명령문자열,요청처리객체> commandMap
   HashMap<String,Command> commandMap = new HashMap<>();
   
-  public EduAppServer2() {
+  public EduAppServer2bak() {
     /*bin 폴더를 뒤져서 AbstracrCommand의 서브 클래스를 찾아낸다.*/
     ArrayList<Class> classList = new ArrayList<>();
     ReflectionUtil.getCommandClasses(new File("./bin"), classList); //classList 바구니를 넘겨주면 바구니에 담아넣는다.
@@ -50,7 +50,7 @@ public class EduAppServer2 {
   }
   
   public static void main(String[] args) throws Exception {
-    EduAppServer2 eduServer = new EduAppServer2();
+    EduAppServer2bak eduServer = new EduAppServer2bak();
     eduServer.service();
   }
 }

@@ -9,9 +9,16 @@ package bitcamp.java89.ems.server.dao;
 
 import java.util.ArrayList;
 
+import bitcamp.java89.ems.server.annotation.Component;
 import bitcamp.java89.ems.server.vo.Contact;
 
+@Component // ApplicationContext가 객체를 관리하는 클래스임을 표시하기 위해 태그를 단다.
 public class ContactDao extends AbstractDao<Contact> { 
+  
+  public ContactDao() { //어차피 객체 생성하는 쪽에서 try~catch하니까 예외를 던짐
+    this.setFilename("contact-v1.8.data");
+      try {this.load();} catch (Exception e) {} //기본 생성자가 생기면 파일 로드하고 처리하도록
+      }
   
   public ArrayList<Contact> getList() {
     return this.list;
